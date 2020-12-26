@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:camera/camera.dart';
+import 'package:first_test_2/display_video_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:path_provider/path_provider.dart';
@@ -56,6 +57,7 @@ class _CameraHomeState extends State<CameraHome> {
       }
     });
     await controller.initialize();
+
     if (mounted) {
       setState(() {});
     }
@@ -112,8 +114,13 @@ class _CameraHomeState extends State<CameraHome> {
           timeInSecForIosWeb: 1,
           backgroundColor: Colors.grey,
           textColor: Colors.white);
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => DisplayVideoScreen(videoPath),),
+      );
     });
   }
+
   Future<void> _stopVideoRecording() async {
     if (!controller.value.isRecordingVideo) {
       return null;
