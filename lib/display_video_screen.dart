@@ -1,7 +1,8 @@
 import 'dart:io';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:first_test_2/camera_page.dart';
-import 'package:first_test_2/list_page.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
@@ -25,6 +26,8 @@ class _DisplayVideoScreenState extends State<DisplayVideoScreen> {
     );
     _initializeVideoPlayerFuture = _controller.initialize();
     _controller.setLooping(true);
+
+    Firebase.initializeApp();
     super.initState();
   }
 
@@ -124,13 +127,8 @@ class _DisplayVideoScreenState extends State<DisplayVideoScreen> {
                     ),
                     color: Colors.teal,
                     textColor: Colors.white,
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ListPage(),
-                        ),
-                      );
+                    onPressed: () => {
+                      videoUpload(),
                     },
                   ),
                 ),
@@ -140,5 +138,16 @@ class _DisplayVideoScreenState extends State<DisplayVideoScreen> {
         ),
       ),
     );
+  }
+
+  void videoUpload() async {
+    final String filePath = widget.filePath;
+    final Reference ref =
+        FirebaseStorage.instance.ref().child('uploads/$filePath');
+    final UploadTask uploadTask = ref.putFile(File(filePath));
+    TaskSnapshot taskSnapshot = await uploadTask;
+    taskSnapshot.ref.getDownloadURL().then(
+          (value) => print("Done: $value"),
+        );
   }
 }
