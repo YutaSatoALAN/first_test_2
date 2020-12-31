@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:first_test_2/camera_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_video_compress/flutter_video_compress.dart';
 import 'package:video_player/video_player.dart';
 
 class DisplayVideoScreen extends StatefulWidget {
@@ -144,10 +145,19 @@ class _DisplayVideoScreenState extends State<DisplayVideoScreen> {
     final String filePath = widget.filePath;
     final Reference ref =
         FirebaseStorage.instance.ref().child('uploads/$filePath');
-    final UploadTask uploadTask = ref.putFile(File(filePath));
-    TaskSnapshot taskSnapshot = await uploadTask;
-    taskSnapshot.ref.getDownloadURL().then(
-          (value) => print("Done: $value"),
-        );
+//    final UploadTask uploadTask = ref.putFile(File(filePath));
+
+    final _flutterVideoCompress = FlutterVideoCompress();
+    final compressFile = await _flutterVideoCompress.compressVideo(
+      filePath,
+      quality: VideoQuality.LowQuality,
+      deleteOrigin: false,
+    );
+    //   final UploadTask uploadTask = ref.putFile(compressFile.file);
+
+    // TaskSnapshot taskSnapshot = await uploadTask;
+    // taskSnapshot.ref.getDownloadURL().then(
+    //       (value) => print("Done: $value"),
+    //     );
   }
 }
