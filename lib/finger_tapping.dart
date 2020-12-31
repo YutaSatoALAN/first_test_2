@@ -120,6 +120,12 @@ class _MainScreenState extends State<MainScreen> {
             child: RaisedButton(
               child: Text('撮影開始'),
               onPressed: () {
+                setState(() {
+                  if (_controller.value.isPlaying) {
+                    _controller.pause();
+                  } else {
+                  }
+                });
                 Navigator.push(
                   context,
                   MaterialPageRoute(
