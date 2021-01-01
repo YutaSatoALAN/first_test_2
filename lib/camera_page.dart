@@ -114,9 +114,11 @@ class _CameraHomeState extends State<CameraHome> {
           timeInSecForIosWeb: 1,
           backgroundColor: Colors.grey,
           textColor: Colors.white);
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => DisplayVideoScreen(videoPath),),
+        MaterialPageRoute(
+          builder: (context) => DisplayVideoScreen(videoPath),
+        ),
       );
     });
   }

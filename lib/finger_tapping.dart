@@ -123,10 +123,9 @@ class _MainScreenState extends State<MainScreen> {
                 setState(() {
                   if (_controller.value.isPlaying) {
                     _controller.pause();
-                  } else {
-                  }
+                  } else {}
                 });
-                Navigator.push(
+                Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
                     builder: (context) => CameraPage(),

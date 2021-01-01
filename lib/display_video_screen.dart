@@ -8,6 +8,9 @@ import 'package:flutter_video_compress/flutter_video_compress.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:video_player/video_player.dart';
 
+import 'camera_page.dart';
+import 'list_page.dart';
+
 class DisplayVideoScreen extends StatefulWidget {
   final String filePath;
 
@@ -20,6 +23,8 @@ class DisplayVideoScreen extends StatefulWidget {
 class _DisplayVideoScreenState extends State<DisplayVideoScreen> {
   VideoPlayerController _controller;
   Future<void> _initializeVideoPlayerFuture;
+  Future<void> _waitingNavi;
+  bool _loading = false;
 
   @override
   void initState() {
@@ -29,6 +34,8 @@ class _DisplayVideoScreenState extends State<DisplayVideoScreen> {
     _initializeVideoPlayerFuture = _controller.initialize();
     _controller.setLooping(true);
 
+    // _waitingNavi = waitNavigation();
+
     Firebase.initializeApp();
     super.initState();
   }
@@ -37,6 +44,41 @@ class _DisplayVideoScreenState extends State<DisplayVideoScreen> {
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  Future<void> videoUpload() async {
+    final String filePath = widget.filePath;
+    final Reference ref =
+        FirebaseStorage.instance.ref().child('uploads/$filePath');
+    // final UploadTask uploadTask = ref.putFile(File(filePath));
+    var status = await Permission.storage.status;
+    if (!status.isGranted) {
+      await Permission.storage.request();
+    }
+    final _flutterVideoCompress = FlutterVideoCompress();
+    final info = await _flutterVideoCompress.compressVideo(
+      filePath,
+      quality: VideoQuality.HighestQuality,
+      deleteOrigin: false,
+    );
+    final UploadTask uploadTask = ref.putFile(info.file);
+    TaskSnapshot taskSnapshot = await uploadTask;
+    taskSnapshot.ref.getDownloadURL().then(
+          (value) => print("Done: $value"),
+        );
+  }
+
+  Future<void> waitNavigation() async {
+    setState(() => _loading = true);
+    await videoUpload().then((_) {
+      setState(() => _loading = false);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ListPage(),
+        ),
+      );
+    });
   }
 
   @override
@@ -108,7 +150,7 @@ class _DisplayVideoScreenState extends State<DisplayVideoScreen> {
                     color: Colors.teal,
                     textColor: Colors.white,
                     onPressed: () {
-                      Navigator.push(
+                      Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
                           builder: (context) => CameraPage(),
@@ -121,16 +163,25 @@ class _DisplayVideoScreenState extends State<DisplayVideoScreen> {
                   height: 50,
                   minWidth: 150,
                   child: RaisedButton(
-                    child: Text(
-                      'OK',
-                      style: TextStyle(
-                        fontSize: 18,
-                      ),
+                    child: FutureBuilder(
+                      // future: _waitingNavi,
+                      builder: (context, snapshot) {
+                        if (_loading == false) {
+                          return Text(
+                            'OK',
+                            style: TextStyle(
+                              fontSize: 18,
+                            ),
+                          );
+                        } else {
+                          return CircularProgressIndicator();
+                        }
+                      },
                     ),
                     color: Colors.teal,
                     textColor: Colors.white,
-                    onPressed: () => {
-                      videoUpload(),
+                    onPressed: () {
+                      waitNavigation();
                     },
                   ),
                 ),
@@ -140,32 +191,5 @@ class _DisplayVideoScreenState extends State<DisplayVideoScreen> {
         ),
       ),
     );
-  }
-
-  void videoUpload() async {
-    final String filePath = widget.filePath;
-    final Reference ref =
-        FirebaseStorage.instance.ref().child('uploads/$filePath');
-    // final UploadTask uploadTask = ref.putFile(File(filePath));
-
-    var status = await Permission.storage.status;
-    if (!status.isGranted) {
-      await Permission.storage.request();
-    }
-
-    final _flutterVideoCompress = FlutterVideoCompress();
-    final info = await _flutterVideoCompress.compressVideo(
-      filePath,
-      quality: VideoQuality.LowQuality,
-      deleteOrigin: false,
-    );
-    debugPrint(info.toJson().toString());
-
-    final UploadTask uploadTask = ref.putFile(info.file);
-
-    TaskSnapshot taskSnapshot = await uploadTask;
-    taskSnapshot.ref.getDownloadURL().then(
-          (value) => print("Done: $value"),
-        );
   }
 }
